@@ -19,6 +19,12 @@ export default {
       right: false,
       up: true,
       down: true,
+      foodW: 20,
+      foodH: 20,
+      mapW: 300,
+      mapH: 300,
+      foodX: null,
+      foodY: null,
     }
   },
   methods:{
@@ -49,7 +55,26 @@ export default {
             break;
         }
       }
+
     },
+
+    food() {
+      this.foodX = Math.floor(Math.random() * (this.mapW / 20));
+      this.foodY = Math.floor(Math.random() * (this.mapH / 20));
+      for(let i = 0;i<this.snakeBody.length;i++){
+        if(this.snakeBody[i][0] === this.foodX && this.snakeBody[i][1] === this.foodY){
+          this.food()
+        }
+      }
+      var food = document.createElement('div');
+      food.style.width = this.foodW + 'px';
+      food.style.height = this.foodH + 'px';
+      food.style.position = 'absolute';
+      food.style.left = this.foodX * 20 + 'px';
+      food.style.top = this.foodY * 20 + 'px';
+      document.getElementsByClassName('mapDiv')[0].appendChild(food).setAttribute('class', 'food')
+    },
+
     move(){
       console.log(this.snakeBody.toString())
       for (var i = this.snakeBody.length - 1; i > 0; i--) {
@@ -74,18 +99,47 @@ export default {
         default:
           break;
       }
+      //判断是否撞墙
       if (this.snakeBody[0][0] < 0 || this.snakeBody[0][0] >= 300 / 20) {
-        // console.log(1)
         clearInterval(this.snakeMove)
         return
-
       }
-
       if (this.snakeBody[0][1] < 0 || this.snakeBody[0][1] >= 300 / 20) {
-        // console.log(1)
         clearInterval(this.snakeMove)
         return
-
+      }
+      //是否撞到自己
+      var snakeHX = this.snakeBody[0][0];
+      var snakeHY = this.snakeBody[0][1];
+      for (var i = 1; i < this.snakeBody.length; i++) {
+        if (snakeHX === this.snakeBody[i][0] && snakeHY === this.snakeBody[i][1]) {
+          clearInterval(this.snakeMove)
+          return
+        }
+      }
+      if (this.snakeBody[0][0] === this.foodX && this.snakeBody[0][1] === this.foodY) {
+        //吃到食物后自身加一
+        var snakeEndX = this.snakeBody[this.snakeBody.length - 1][0];
+        var snakeEndY = this.snakeBody[this.snakeBody.length - 1][1];
+        switch (this.direct) {
+          case 'right':
+            this.snakeBody.push([snakeEndX + 1, snakeEndY, 'body']);
+            break;
+          case 'up':
+            this.snakeBody.push([snakeEndX, snakeEndY - 1, 'body']);
+            break;
+          case 'left':
+            this.snakeBody.push([snakeEndX - 1, snakeEndY, 'body']);
+            break;
+          case 'down':
+            this.snakeBody.push([snakeEndX, snakeEndY + 1, 'body']);
+            break;
+          default:
+            break;
+        }
+        //吃到食物
+        this.removeClass('food');
+        this.food();
       }
       this.removeClass('snake');
       this.init();
@@ -152,6 +206,7 @@ export default {
   },
   mounted() {
     this.init()
+    this.food()
     this.game()
     this.directChange()
   }
@@ -162,6 +217,10 @@ export default {
 <style scoped>
 /deep/ .snake{
   background-color: #c8378c;
+  border-radius: 10px;
+}
+/deep/ .food{
+  background-color: wheat;
   border-radius: 10px;
 }
 </style>
